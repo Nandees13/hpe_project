@@ -1,7 +1,6 @@
 const fetch = require('node-fetch');
 const axios = require('axios');
 
-// GitHub environment variables
 const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
 const pullRequestNumber = process.env.GITHUB_REF.split('/')[2];
 
