@@ -52,10 +52,6 @@ clang_VirtualFileOverlay_create(unsigned options);
  * The virtual path must be canonicalized (not contain "."/"..").
  * \returns 0 for success, non-zero to indicate an error.
  */
-CINDEX_LINKAGE enum CXErrorCode
-clang_VirtualFileOverlay_addFileMapping(CXVirtualFileOverlay,
-                                        const char *virtualPath,
-                                        const char *realPath);
 
 /**
  * Set the case sensitivity for the \c CXVirtualFileOverlay object.
@@ -63,7 +59,6 @@ clang_VirtualFileOverlay_addFileMapping(CXVirtualFileOverlay,
  * option can be used to override the default.
  * \returns 0 for success, non-zero to indicate an error.
  */
-CINDEX_LINKAGE enum CXErrorCode
 clang_VirtualFileOverlay_setCaseSensitivity(CXVirtualFileOverlay,
                                             int caseSensitive);
 
@@ -105,8 +100,6 @@ typedef struct CXModuleMapDescriptorImpl *CXModuleMapDescriptor;
  *
  * \param options is reserved, always pass 0.
  */
-CINDEX_LINKAGE CXModuleMapDescriptor
-clang_ModuleMapDescriptor_create(unsigned options);
 
 /**
  * Sets the framework module name that the module.modulemap describes.
@@ -128,15 +121,10 @@ clang_ModuleMapDescriptor_setUmbrellaHeader(CXModuleMapDescriptor,
  * Write out the \c CXModuleMapDescriptor object to a char buffer.
  *
  * \param options is reserved, always pass 0.
- * \param out_buffer_ptr pointer to receive the buffer pointer, which should be
  * disposed using \c clang_free().
  * \param out_buffer_size pointer to receive the buffer size.
  * \returns 0 for success, non-zero to indicate an error.
  */
-CINDEX_LINKAGE enum CXErrorCode
-clang_ModuleMapDescriptor_writeToBuffer(CXModuleMapDescriptor, unsigned options,
-                                       char **out_buffer_ptr,
-                                       unsigned *out_buffer_size);
 
 /**
  * Dispose a \c CXModuleMapDescriptor object.
