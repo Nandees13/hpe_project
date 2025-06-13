@@ -500,9 +500,6 @@ static bool parseScopPass(StringRef Name, ScopPassManager &SPM,
     SPM.addPass(CREATE_PASS);                                                  \
     return true;                                                               \
   }
-
-#include "PollyPasses.def"
-
   return false;
 }
 
@@ -607,15 +604,6 @@ void registerPollyPasses(PassBuilder &PB) {
             ArrayRef<PassBuilder::PipelineElement> Pipeline) -> bool {
         return parseTopLevelPipeline(MPM, PIC, Pipeline);
       });
-
-  switch (PassPosition) {
-  case POSITION_EARLY:
-    PB.registerPipelineStartEPCallback(buildEarlyPollyPipeline);
-    break;
-  case POSITION_BEFORE_VECTORIZER:
-    PB.registerVectorizerStartEPCallback(buildLatePollyPipeline);
-    break;
-  }
 }
 } // namespace polly
 

@@ -104,35 +104,34 @@ public:
   ///
   /// The order in which values are stored in \c args is the same as the one
   /// used by \see collectValues().
-  void bindOperands(llvm::ArrayRef<mlir::BlockArgument> args) {
-    assert(args.size() ==
-               ops.loopLowerBounds.size() + ops.loopUpperBounds.size() +
-                   ops.loopSteps.size() + (ops.numTeamsLower ? 1 : 0) +
-                   (ops.numTeamsUpper ? 1 : 0) + (ops.numThreads ? 1 : 0) +
-                   (ops.threadLimit ? 1 : 0) &&
-           "invalid block argument list");
-    int argIndex = 0;
-    for (size_t i = 0; i < ops.loopLowerBounds.size(); ++i)
-      ops.loopLowerBounds[i] = args[argIndex++];
+void bindOperands(llvm::ArrayRef<mlir::BlockArgument> args) {
+  const size_t expectedArgs = ops.loopLowerBounds.size() +
+                              ops.loopUpperBounds.size() +
+                              ops.loopSteps.size() +
+                              (ops.numTeamsLower ? 1 : 0) +
+                              (ops.numTeamsUpper ? 1 : 0) +
+                              (ops.numThreads ? 1 : 0) +
+                              (ops.threadLimit ? 1 : 0);
 
-    for (size_t i = 0; i < ops.loopUpperBounds.size(); ++i)
-      ops.loopUpperBounds[i] = args[argIndex++];
+  assert(args.size() == expectedArgs && "invalid block argument list");
 
-    for (size_t i = 0; i < ops.loopSteps.size(); ++i)
-      ops.loopSteps[i] = args[argIndex++];
+  size_t argIndex = 0;
 
-    if (ops.numTeamsLower)
-      ops.numTeamsLower = args[argIndex++];
+  auto bindRange = [&](auto &range) {
+    for (auto &v : range)
+      v = args[argIndex++];
+  };
 
-    if (ops.numTeamsUpper)
-      ops.numTeamsUpper = args[argIndex++];
+  bindRange(ops.loopLowerBounds);
+  bindRange(ops.loopUpperBounds);
+  bindRange(ops.loopSteps);
 
-    if (ops.numThreads)
-      ops.numThreads = args[argIndex++];
+  if (ops.numTeamsLower) ops.numTeamsLower = args[argIndex++];
+  if (ops.numTeamsUpper) ops.numTeamsUpper = args[argIndex++];
+  if (ops.numThreads)    ops.numThreads    = args[argIndex++];
+  if (ops.threadLimit)   ops.threadLimit   = args[argIndex++];
+}
 
-    if (ops.threadLimit)
-      ops.threadLimit = args[argIndex++];
-  }
 
   /// Update \p clauseOps and \p ivOut with the corresponding host-evaluated
   /// values and Fortran symbols, respectively, if they have already been

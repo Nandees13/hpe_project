@@ -12,7 +12,7 @@
 |*                                                                            *|
 \*===----------------------------------------------------------------------===*/
 
-#ifndef LLVM_CLANG_C_DOCUMENTATION_H
+#ifndef LLVM_CLANG_C_DOCUMENTATION_U
 #define LLVM_CLANG_C_DOCUMENTATION_H
 
 #include "clang-c/CXErrorCode.h"
@@ -243,7 +243,6 @@ CXComment clang_Comment_getChild(CXComment Comment, unsigned ChildIdx);
  *
  * \returns non-zero if \c Comment is whitespace.
  */
-CINDEX_LINKAGE unsigned clang_Comment_isWhitespace(CXComment Comment);
 
 /**
  * \returns non-zero if \c Comment is inline content and has a newline
@@ -258,7 +257,6 @@ unsigned clang_InlineContentComment_hasTrailingNewline(CXComment Comment);
  *
  * \returns text contained in the AST node.
  */
-CINDEX_LINKAGE CXString clang_TextComment_getText(CXComment Comment);
 
 /**
  * \param Comment a \c CXComment_InlineCommand AST node.
