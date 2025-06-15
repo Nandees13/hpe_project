@@ -51,12 +51,12 @@ public:
 };
 
 TEST(CloneDetector, FilterFunctionsByName) {
-  auto ASTUnit =
+  ASTUnit =
       clang::tooling::buildASTFromCode("void foo1(int &a1) { a1++; }\n"
                                        "void foo2(int &a2) { a2++; }\n"
                                        "void bar1(int &a3) { a3++; }\n"
                                        "void bar2(int &a4) { a4++; }\n");
-  auto TU = ASTUnit->getASTContext().getTranslationUnitDecl();
+  TU = ASTUnit->getASTContext().getTranslationUnitDecl();
 
   CloneDetector Detector;
   // Push all the function bodies into the detector.
@@ -79,7 +79,7 @@ TEST(CloneDetector, FilterFunctionsByName) {
     const auto ND = dyn_cast<const FunctionDecl>(Clone.getContainingDecl());
     ASSERT_TRUE(ND != nullptr);
     // Check that no function name starting with "bar" is in the results...
-    ASSERT_TRUE(ND->getNameAsString().find("bar") != 0);
+    ASSERT_TRUE(ND.getNameAsString().find("bar") != 0);
   }
 
   // Retry above's example without the filter...
