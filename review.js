@@ -2,19 +2,17 @@ const fetch = require('node-fetch');
 const axios = require('axios');
 const { Octokit } = require('@octokit/rest');
 
-// Extract repo and PR number
 const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
 const pullRequestNumber = process.env.GITHUB_REF.split('/')[2];
 
-// Set up Octokit and Gemini API
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
   request: { fetch },
 });
+
 const geminiApiKey = process.env.GEMINI_API_KEY;
 const geminiEndpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-// Fetch PR metadata, file-level diffs, and comments
 async function getPullRequestData() {
   try {
     const { data: pr } = await octokit.pulls.get({
@@ -47,13 +45,45 @@ async function getPullRequestData() {
   }
 }
 
-// Format public PR comments into markdown
 function formatPRComments(comments) {
   if (!comments.length) return 'No public PR comments.';
   return comments.map(c => `**${c.user.login}**: ${c.body}`).join('\n\n');
 }
 
-// Prepare Gemini prompt using per-file structured patch data
+async function fetchPreviousDiffs(filename) {
+  const { data: pulls } = await octokit.pulls.list({
+    owner,
+    repo,
+    state: 'closed',
+    per_page: 10,
+  });
+
+  const recentMerged = pulls.filter(pr => pr.merged_at && pr.number !== Number(pullRequestNumber));
+
+  const matchingDiffs = [];
+
+  for (const pr of recentMerged) {
+    const { data: changedFiles } = await octokit.pulls.listFiles({
+      owner,
+      repo,
+      pull_number: pr.number,
+    });
+
+    const match = changedFiles.find(file => file.filename === filename);
+    if (match && match.patch) {
+      matchingDiffs.push({
+        number: pr.number,
+        user: pr.user.login,
+        patch: match.patch,
+      });
+    }
+
+    if (matchingDiffs.length >= 3) break;
+  }
+
+  return matchingDiffs;
+}
+
 async function getGeminiReview(fileSummaries, author, title, numFilesChanged, commentBlock) {
   const prompt = `You are a senior software engineer helping review a GitHub Pull Request.
 
@@ -73,7 +103,7 @@ For each file:
 - Comment Summary: If any PR-level comments are related to this file, summarize them and include the commenter names.
 - Recommendations: Suggest improvements or flag concerns if needed.
 
-Use clear headings, give as points instead of para, avoid tables, and keep the writing technical and concise.
+When applicable, compare current changes with patterns from past pull requests that modified the same file and infer improvements based on history.
 
 ${fileSummaries}
 
@@ -104,7 +134,6 @@ ${commentBlock}`;
   }
 }
 
-// Post review to the PR
 async function postReviewComment(review) {
   try {
     await octokit.issues.createComment({
@@ -120,7 +149,6 @@ async function postReviewComment(review) {
   }
 }
 
-// Main function
 (async () => {
   const { author, title, comments, files } = await getPullRequestData();
 
@@ -134,15 +162,16 @@ async function postReviewComment(review) {
     return;
   }
 
-  const fileSummaries = filteredFiles
-    .map(file => {
-      return `### File: \`${file.filename}\`
+  let fileSummaries = '';
 
-\`\`\`diff
-${file.patch || ''}
-\`\`\``;
-    })
-    .join('\n\n');
+  for (const file of filteredFiles) {
+    const prevDiffs = await fetchPreviousDiffs(file.filename);
+    const historyBlock = prevDiffs.length
+      ? prevDiffs.map(p => `From PR #${p.number} by @${p.user}:\n\`\`\`diff\n${p.patch}\n\`\`\``).join('\n\n')
+      : 'No similar historical changes found.';
+
+    fileSummaries += `### File: \`${file.filename}\`\n\n\`\`\`diff\n${file.patch || ''}\n\`\`\`\n\n**Historical Changes**:\n${historyBlock}\n\n`;
+  }
 
   const numFilesChanged = filteredFiles.length;
   const formattedComments = formatPRComments(comments);
