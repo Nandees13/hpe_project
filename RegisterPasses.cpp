@@ -38,9 +38,6 @@
 #include "polly/ScopInfo.h"
 #include "polly/Simplify.h"
 #include "polly/Support/DumpFunctionPass.h"
-#include "polly/Support/DumpModulePass.h"
-#include "llvm/Analysis/CFGPrinter.h"
-#include "llvm/Config/llvm-config.h" // for LLVM_VERSION_STRING
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/Verifier.h"
@@ -56,9 +53,6 @@ using llvm::FunctionPassManager;
 using llvm::OptimizationLevel;
 using llvm::PassBuilder;
 using llvm::PassInstrumentationCallbacks;
-
-cl::OptionCategory PollyCategory("Polly Options",
-                                 "Configure the polly loop optimizer");
 
 namespace polly {
 static cl::opt<bool>
