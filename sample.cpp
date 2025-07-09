@@ -48,7 +48,7 @@ int main() {
     std::cout << "Multiply: " << calc.multiply(a, b) << std::endl;
     std::cout << "Divide: " << calc.divide(a, b) << std::endl;
     std::cout << "Modulo: " << calc.modulo(a, b) << std::endl;
-
+    
     std::string text = "hello";
     std::cout << "Reverse: " << reverseString(text) << std::endl;
 
